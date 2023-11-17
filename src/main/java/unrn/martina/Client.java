@@ -1,4 +1,4 @@
-package unrn.martina.model;
+package unrn.martina;
 
 import java.net.ServerSocket;
 import java.net.Socket;
