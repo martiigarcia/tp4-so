@@ -1,7 +1,7 @@
 El sistema a simular está compuesto por un sistema de exclusas en un istmo, que permite a los
 barcos cruzar desde un Océano hacia otro, como se muestra en la siguiente Figura 1.2:
 
-![img.png](../../../resources/img.png)
+![img.png](C:\Users\marti\OneDrive\Escritorio\trabajos-actuales\sistemas-operativos\tp4\tp4\src\main\resources\img.png)
 
 Las exclusas funcionan del siguiente modo:
 
