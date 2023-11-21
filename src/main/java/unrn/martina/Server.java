@@ -22,6 +22,8 @@ public class Server {
             while (true) {
                 Socket socket = server.accept(); // Se acepta la conexión del cliente
                 handleSeaLocks(socket); // Se manejan las esclusas para el barco (cliente) conectado
+                // Aca habria que cerrar el socket para un ejemplo de la vida real ya que puede traer problemas de memoria
+                // En este caso igual no se cierra aca, se cierra en el handleSeaLock despues de llamar al metodo navigate
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -41,37 +43,56 @@ public class Server {
             //Depende de si es OESTE o ESTE se agrega el socket a la cola respectivamente
             if (direction.equals("OESTE")) {
                 westQueue.add(socket);
-                System.out.println("Un barco entró a la esclusa OESTE. Barcos en esclusa OESTE: " + westQueue.size());
+                System.out.println("Un barco llegó a la esclusa OESTE. Barcos en esclusa OESTE: " + westQueue.size());
             } else {
                 eastQueue.add(socket);
-                System.out.println("Un barco entró a la esclusa ESTE. Barcos en esclusa ESTE: " + eastQueue.size());
+                System.out.println("Un barco llegó a la esclusa ESTE. Barcos en esclusa ESTE: " + eastQueue.size());
             }
 
             //Para verificar si la cola OESTE o ESTE tiene dos barcos esperando
-            if (westQueue.size() == 2) {
+            if (westQueue.size() >= 2) {
                 //Si hay dos barcos los desencola y envia mensaje de permiso para navegar
-                System.out.println("------ Permitiendo el paso de barcos del OESTE... ------");
+                System.out.println("Permitiendo el paso de barcos");
                 Socket ship1 = westQueue.poll();
                 Socket ship2 = westQueue.poll();
-                reportPermissionToNavigate(ship1);
-                reportPermissionToNavigate(ship2);
-            } else if (eastQueue.size() == 2) {
+
+                navigate(ship1, ship2);
+                ship1.close();
+                ship2.close();
+            } else if (eastQueue.size() >= 2) {
                 //Si hay dos barcos los desencola y envia mensaje de permiso para navegar
-                System.out.println("------ Permitiendo el paso de barcos del ESTE... ------");
+                System.out.println("Permitiendo el paso de barcos");
                 Socket ship1 = eastQueue.poll();
                 Socket ship2 = eastQueue.poll();
-                reportPermissionToNavigate(ship1);
-                reportPermissionToNavigate(ship2);
+
+                navigate(ship1, ship2);
+                ship1.close();
+                ship2.close();
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
+    private static void navigate(Socket shipSocket1, Socket shipSocket2) throws IOException {
+        //Para enviar mensaje de navegar
+        reportPermissionToNavigate(shipSocket1, "ENTRADA_PERMITIDA");
+        reportPermissionToNavigate(shipSocket2, "ENTRADA_PERMITIDA");
+
+        System.out.println("--- Los barcos estan navegando en el canal ---");
+
+        //Para enviar mensaje de salir del canal
+        reportPermissionToNavigate(shipSocket1, "SALIDA_PERMITIDA");
+        reportPermissionToNavigate(shipSocket2, "SALIDA_PERMITIDA");
+
+        System.out.println("--- Los barcos salieron del canal ---");
+    }
+
     // Para mandarle mensaje al barco (Cliente) que se permitió la navegación
-    private static void reportPermissionToNavigate(Socket shipSocket) throws IOException {
+    private static void reportPermissionToNavigate(Socket shipSocket, String message) throws IOException {
         OutputStream output = shipSocket.getOutputStream();
         PrintWriter writer = new PrintWriter(output, true);
-        writer.println("NAVEGACION_PERMITIDA");
+        writer.println(message);
     }
+
 }
